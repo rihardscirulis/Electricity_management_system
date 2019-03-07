@@ -13,11 +13,15 @@ public class EMS_Server {
 	EMS_ServerListener ems_ServerListener;
 	
 	public EMS_Server() throws IOException {
+		configureAndStartServer();
+	}
+	
+	public void configureAndStartServer() throws IOException {
 		server = new Server();
 		ems_ServerListener = new EMS_ServerListener();
 		server.addListener(ems_ServerListener);
 		try {
-			server.bind(5000);
+			server.bind(8001);
 		}
 		catch(IOException e) {
 			e.printStackTrace();
@@ -33,7 +37,7 @@ public class EMS_Server {
 		kryo.register(ArrayList.class);
 	}
 	
-	public static void main(String[] args) throws IOException {
+	/*public static void main(String[] args) throws IOException {
 		Server server;
 		EMS_ServerListener ems_ServerListener;
 		server = new Server();
@@ -45,5 +49,5 @@ public class EMS_Server {
 		//kryo.register(ArrayList.class);
 		kryo.register(UsersData.class);
 		server.start();
-	}
+	}*/
 }

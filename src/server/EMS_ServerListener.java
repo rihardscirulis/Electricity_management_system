@@ -2,6 +2,8 @@ package server;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import classes.UsersData;
@@ -16,13 +18,13 @@ public class EMS_ServerListener extends Listener {
 	
 	@Override
 	public void connected(Connection connect) {
-		System.out.println("SERVER >> New connection: "+ connect.getID());
+		System.out.println("SERVER >> New connection from client: "+ connect.getID());
 		connections.add(connect);
 	}
 	
 	@Override
 	public void disconnected(Connection connect) {
-		System.out.println("SERVER >> Disconnected: "+ connect.getID());
+		System.out.println("SERVER >> Disconnected client: "+ connect.getID());
 		connections.remove(connect);
 	}
 	

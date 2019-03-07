@@ -15,6 +15,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import server.ClientListener;
+import server.ClientServer;
 import server.EMS_Server;
 
 import java.io.IOException;
@@ -24,7 +26,7 @@ import java.util.ArrayList;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Server;
-import classes.ClientListener;
+
 import classes.UsersData;
 import database.UserDatabase;
 
@@ -40,7 +42,7 @@ public class ClientApplication extends Application {
     }
 	
 	//Funkcija, kas atïauj klientam pievienoties serverim
-	public Client connectToServer() throws IOException {
+	/*public Client connectToServer() throws IOException {
 		//1. izveido klientu
 		Client client = new Client();
 		
@@ -60,7 +62,7 @@ public class ClientApplication extends Application {
 		//5. pievienojas serverim
 		client.connect(5000, "127.0.0.1", 8001);
 		return client;
-	}
+	}*/
 	
     @Override
     public void start(Stage primaryStage) {
@@ -133,32 +135,38 @@ public class ClientApplication extends Application {
 					e1.printStackTrace();
 				}
 	        	try {
-	        		boolean correctLogin = false;
-	        		correctLogin = db.checkLoginDataValidation(username, password);
-					if(correctLogin == true) {
-						Client client;
-						client = connectToServer();
-						client.sendTCP(user); //nosûta lietotâju uz serveri
+					ClientServer clientServer = new ClientServer();
+					Client client = new Client();
+					clientServer.client.sendTCP(user);
+				} catch (IOException | InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+	        	
+	        	//try {
+	        		//boolean correctLogin = false;
+	        		//correctLogin = db.checkLoginDataValidation(username, password);
+					//if(correctLogin == true) {
+						//Client client = new Client();
+						//client = connectToServer();
+						//client.sendTCP(user); //nosûta lietotâju uz serveri
 						boolean userType;
-						if(userType = db.checkAdminOrUser(username, password, "admin") == true) {
+						/*if(userType = db.checkAdminOrUser(username, password, "admin") == true) {
 							primaryStage.setScene(adminScene);
 						}
 						else if(userType = db.checkAdminOrUser(username, password, "client") == true){
 							primaryStage.setScene(clientScene);
-						}
-					}
-					else {
-						Label info = new Label("Incorrect username or password!");
-						info.setTextFill(Color.web("Red"));
-				        grid.add(info, 1, 6);
-					}
-				} 
-	        	catch (SQLException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+						}*/
+					//}
+					//else {
+					//	Label info = new Label("Incorrect username or password!");
+					//	info.setTextFill(Color.web("Red"));
+				    //    grid.add(info, 1, 6);
+					//}
+				//} 
+	        	//catch (SQLException e) {
+				//	e.printStackTrace();
+				//}
 	        	try {
 					db.endConnection();
 				} catch (SQLException e) {
