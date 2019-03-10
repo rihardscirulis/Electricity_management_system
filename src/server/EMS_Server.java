@@ -3,7 +3,9 @@ package server;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Server;
 
+import classes.appClient;
 import classes.UsersData;
+import classes.addClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,7 +36,8 @@ public class EMS_Server {
 		Kryo kryo = server.getKryo();
 		kryo.register(String.class);
 		kryo.register(UsersData.class);
-		kryo.register(ArrayList.class);
+		kryo.register(appClient.class);
+		kryo.register(addClient.class);
 	}
 	
 	/*public static void main(String[] args) throws IOException {

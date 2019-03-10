@@ -6,6 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import classes.appClient;
+import classes.appClient;
+
 public class UserDatabase {
 	static Connection connection = null;
 	
@@ -51,7 +54,7 @@ public class UserDatabase {
 		try {
 			Statement statement = connection.createStatement();
 			statement.executeUpdate("INSERT INTO Users (User_ID, Name, Surname, PersonCode, Email, Username, Password, UserType)"+
-				"VALUES ("+userID+", '"+name+"', '"+surname+"', '"+personCode+"', '"+email+"', '"+username+"', '"+password+"', '"+userType+"');");
+				"VALUES ((SELECT MAX(User_ID) FROM Users) + 1,'"+name+"', '"+surname+"', '"+personCode+"', '"+email+"', '"+username+"', '"+password+"', '"+userType+"');");
 			statement.close();
 		}
 		catch(Exception e) {
@@ -90,5 +93,22 @@ public class UserDatabase {
 		}
 		result.close();
 		return false;
+	}
+	
+	public appClient getClientByUsername(String username) throws SQLException {
+		appClient getClient = new appClient();
+		Statement statement = connection.createStatement();
+		ResultSet result = statement.executeQuery("SELECT * FROM Users WHERE Username = '"+username+"'");
+		while(result.next()) {
+			getClient.setID(result.getInt("User_ID"));
+			getClient.setName(result.getString("Name"));
+			getClient.setSurname(result.getString("Surname"));
+			getClient.setPersonCode(result.getString("PersonCode"));
+			getClient.setEmail(result.getString("Email"));
+			getClient.setUsername(result.getString("Username"));
+			getClient.setPassword(result.getString("Password"));
+			getClient.setUserType(result.getString("UserType"));
+		}
+		return getClient;
 	}
 }

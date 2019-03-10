@@ -3,6 +3,8 @@ package server;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
+import application.ClientApplication;
+import classes.appClient;
 import classes.UsersData;
 
 public class ClientListener extends Listener{
@@ -20,15 +22,19 @@ public class ClientListener extends Listener{
 	@Override
 	public void received(Connection connection, Object object) {
 		if(object instanceof String) {
-			String result = (String) object;
-			System.out.println("Message from SERVER: ");
-			System.out.println(result);
+			if(object.equals("Login successful")) {
+				ClientApplication.setLoginStatus("Login successful");
+			}
+			if(object.equals("Login unsuccessful")) {
+				ClientApplication.setLoginStatus("Login unsuccessful");
+			}
+			if(object.equals("New user added to database")) {
+				ClientApplication.setAddedUserStatus("New user added to database");
+			}
 		}
-		
-		if(object instanceof UsersData) {
-			String result = (String) object;
-			System.out.println("Message from SERVER: ");
-			System.out.println(result);
-		}	
+		if(object instanceof appClient) {
+			appClient tempClient = (appClient) object;
+			ClientApplication.setLogInClient(tempClient);
+		}
 	}
 }

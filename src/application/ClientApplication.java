@@ -5,9 +5,13 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -27,42 +31,27 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Server;
 
+import classes.appClient;
 import classes.UsersData;
+import classes.addClient;
 import database.UserDatabase;
 
 public class ClientApplication extends Application {
 
+	private static ClientServer clientserver; //klienta servera objekts
+	private static String loginStatus = ""; //mainigais kas sanem no servera listener atbildi 
+	private static appClient logInClient;
+	private static String addedUser = "";
+	
 	Scene loginScene;
 	Scene adminScene;
 	Scene clientScene;
 	Scene addUserScene;
+	Scene checkUserScene;
 	
 	public static void main(String[] args) {
         launch(args);
     }
-	
-	//Funkcija, kas atïauj klientam pievienoties serverim
-	/*public Client connectToServer() throws IOException {
-		//1. izveido klientu
-		Client client = new Client();
-		
-		//2. pievieno klausîtâju
-		ClientListener clientListener = new ClientListener();
-		client.addListener(clientListener);
-		
-		//3. reìistrç klases
-		Kryo kryo = client.getKryo();
-		kryo.register(String.class);
-		//kryo.register(ArrayList.class);
-		kryo.register(UsersData.class);
-		
-		//4. palaiþ klientu
-		client.start();
-		
-		//5. pievienojas serverim
-		client.connect(5000, "127.0.0.1", 8001);
-		return client;
-	}*/
 	
     @Override
     public void start(Stage primaryStage) {
@@ -91,11 +80,18 @@ public class ClientApplication extends Application {
         grid3.setPadding(new Insets(25, 25, 25, 25));
         
         GridPane grid4 = new GridPane();
-        Scene addUserScene = new Scene(grid4, 350, 200);
+        Scene addUserScene = new Scene(grid4, 470, 400);
         grid4.setAlignment(Pos.CENTER);
         grid4.setHgap(10);
         grid4.setVgap(10);
         grid4.setPadding(new Insets(25, 25, 25, 25));
+        
+        GridPane grid5 = new GridPane();
+        Scene checkUserScene = new Scene(grid5, 470, 400);
+        grid5.setAlignment(Pos.CENTER);
+        grid5.setHgap(10);
+        grid5.setVgap(10);
+        grid5.setPadding(new Insets(25, 25, 25, 25));
         
         // ---<< Pierakstîðanâs logs >>---
         Scene loginScene = new Scene(grid, 450, 275);
@@ -127,51 +123,34 @@ public class ClientApplication extends Application {
 	        	String username = usernameTextField.getText();
 	        	String password = passwordTextField.getText();
 	        	UsersData user = new UsersData(username, password);
-	        	UserDatabase db = new UserDatabase();
 	        	try {
-					db.createConnection();
-				} 
-	        	catch (ClassNotFoundException | SQLException e1) {
-					e1.printStackTrace();
-				}
-	        	try {
-					ClientServer clientServer = new ClientServer();
-					Client client = new Client();
-					clientServer.client.sendTCP(user);
+					clientserver = new ClientServer();
+					clientserver.getClient().sendTCP(user);
 				} catch (IOException | InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-	        	
-	        	//try {
-	        		//boolean correctLogin = false;
-	        		//correctLogin = db.checkLoginDataValidation(username, password);
-					//if(correctLogin == true) {
-						//Client client = new Client();
-						//client = connectToServer();
-						//client.sendTCP(user); //nosûta lietotâju uz serveri
-						boolean userType;
-						/*if(userType = db.checkAdminOrUser(username, password, "admin") == true) {
-							primaryStage.setScene(adminScene);
-						}
-						else if(userType = db.checkAdminOrUser(username, password, "client") == true){
-							primaryStage.setScene(clientScene);
-						}*/
-					//}
-					//else {
-					//	Label info = new Label("Incorrect username or password!");
-					//	info.setTextFill(Color.web("Red"));
-				    //    grid.add(info, 1, 6);
-					//}
-				//} 
-	        	//catch (SQLException e) {
-				//	e.printStackTrace();
-				//}
-	        	try {
-					db.endConnection();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+	        	while(loginStatus.equals("")) {
+	        		try {
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+	        	}
+	        	if(loginStatus.equals("Login successful")) {
+	        		if(logInClient.getUserType().equals("admin")) {
+	        			primaryStage.setScene(adminScene);
+	        		}
+	        		else if(logInClient.getUserType().equals("client")) {
+	        			primaryStage.setScene(clientScene);
+	        		}
+	        	}
+	        	else if(loginStatus.equals("Login unsuccessful")) {
+	        		Label info = new Label("Incorrect username or password!");
+					info.setTextFill(Color.web("Red"));
+				    grid.add(info, 1, 6);
+	        	}
 	    	});
 	        
 	        
@@ -186,13 +165,130 @@ public class ClientApplication extends Application {
 	        grid2.add(addUser, 0, 1);
 	        addUser.setOnAction(event -> {
 	        	primaryStage.setScene(addUserScene);
-	        	Text addUserText = new Text("Add User");
-	        	addUserText.setFont(Font.font("Times New Roman", FontWeight.NORMAL, 20));
-		        grid4.add(addUserText, 0, 0, 3, 1);
 	        });
 	        
-	        Button checkUser = new Button("Check User");
+	     // ---<< Administratora lietotaju pievienoðanas scena >>---
+	        Text addUserText = new Text("Add User");
+        	addUserText.setFont(Font.font("Times New Roman", FontWeight.NORMAL, 20));
+	        grid4.add(addUserText, 0, 0, 3, 1);
+	        
+	        Label regUserName = new Label("Username:");
+	        grid4.add(regUserName, 0, 1);
+	
+	        TextField regUserNameTextField = new TextField();
+	        grid4.add(regUserNameTextField, 1, 1);
+	        
+	        Label regPassword = new Label("Password:");
+	        grid4.add(regPassword, 0, 2);
+	        
+	        TextField regPasswordTextField = new TextField();
+	        grid4.add(regPasswordTextField, 1, 2);
+	        
+	        Label regName = new Label("Name:");
+	        grid4.add(regName, 0, 4);
+	        
+	        TextField regNameTextField = new TextField();
+	        grid4.add(regNameTextField, 1, 4);
+	        
+	        Label regSurname = new Label("Surname:");
+	        grid4.add(regSurname, 0, 5);
+	        
+	        TextField regSurnameTextField = new TextField();
+	        grid4.add(regSurnameTextField, 1, 5);
+	        
+	        Label regPersonCode = new Label("Person code:");
+	        grid4.add(regPersonCode, 0, 6);
+	        
+	        TextField regPersonCodeTextField_1 = new TextField();
+	        grid4.add(regPersonCodeTextField_1, 1, 6);
+	        
+	        Label personCodeLine = new Label("-");
+	        grid4.add(personCodeLine, 2, 6);
+	        
+	        TextField regPersonCodeTextField_2 = new TextField();
+	        grid4.add(regPersonCodeTextField_2, 3, 6);
+	        
+	        Label regEmail = new Label("Email:");
+	        grid4.add(regEmail, 0, 7);
+	        
+	        TextField regEmailTextField = new TextField();
+	        grid4.add(regEmailTextField, 1, 7);
+	        
+	        Label regUserType = new Label("User type:");
+	        grid4.add(regUserType, 0, 9);
+	        
+	        final ComboBox userTypeComboBox = new ComboBox();
+	        userTypeComboBox.getItems().addAll(
+	        		"admin",
+	        		"client"
+	        );
+	        userTypeComboBox.setValue("admin");
+	        grid4.add(userTypeComboBox, 1, 9);
+	        
+	        Button addPersonInDB = new Button("Add");
+	        HBox hBoxaddPersonInDB = new HBox(10);
+	        hBoxaddPersonInDB.setAlignment(Pos.BOTTOM_LEFT);
+	        hBoxaddPersonInDB.getChildren().add(addPersonInDB);
+	        grid4.add(hBoxaddPersonInDB, 0, 10);
+	        addPersonInDB.setOnAction(event -> {
+	        	String newUsername = regUserNameTextField.getText();
+	        	String newPassword = regPasswordTextField.getText();
+	        	String newName = regNameTextField.getText();
+	        	String newSurname = regSurnameTextField.getText();
+	        	
+	        	String newPersonCode_1 = regPersonCodeTextField_1.getText();
+	        	String newPersonCode_2 = regPersonCodeTextField_2.getText();
+	        	String newPersonCode = newPersonCode_1 + newPersonCode_2;
+	        	
+	        	String newEmail = regEmailTextField.getText();
+	        	String newUserType = (String) userTypeComboBox.getValue();
+	        	
+	        	addClient addClientInDB = new addClient(newName, newSurname, newPersonCode, newEmail, newUsername, newPassword, newUserType);
+	        	clientserver.getClient().sendTCP(addClientInDB);
+	        });
+        	if(addedUser.equals("New user added to database")) {
+        		Label infoAdd = new Label("New user succesfully added in database!");
+        		infoAdd.setTextFill(Color.web("Red"));
+			    grid4.add(infoAdd, 0, 10);
+        	}
+        	Button backPreviousScene = new Button("Back");
+	        HBox hBoxbackPreviousScene = new HBox(10);
+	        hBoxbackPreviousScene.setAlignment(Pos.BOTTOM_LEFT);
+	        hBoxbackPreviousScene.getChildren().add(backPreviousScene);
+	        grid4.add(hBoxbackPreviousScene, 1, 10);
+	        backPreviousScene.setOnAction(event -> {
+	        	primaryStage.setScene(adminScene);
+	        });
+	     // -------------------------------------------------------------------------------------
+	        
+	        Button checkUser = new Button("Check Users");
 	        grid2.add(checkUser, 1, 1);
+	        checkUser.setOnAction(event -> {
+	        	primaryStage.setScene(checkUserScene);
+	        });
+	        Text checkUserText = new Text("Check users");
+	        checkUserText.setFont(Font.font("Times New Roman", FontWeight.NORMAL, 20));
+	        grid5.add(checkUserText, 0, 0, 3, 1);
+	        
+	        TableView<appClient> allUsersInTable = new TableView<>();
+	        TableColumn<addClient, Integer> userIDColumn = new TableColumn<>("User ID");
+	        TableColumn<addClient, String> userNameColumn = new TableColumn<>("Name");
+	        TableColumn<addClient, String> userSurnameColumn = new TableColumn<>("Surname");
+	        TableColumn<addClient, String> userPersonCodeColumn = new TableColumn<>("Person code");
+	        TableColumn<addClient, String> userEmailColumn = new TableColumn<>("Email");
+	        TableColumn<addClient, String> userUsernameColumn = new TableColumn<>("Username");
+	        TableColumn<addClient, String> userPasswordColumn = new TableColumn<>("Password");
+	        TableColumn<addClient, String> userUserTypeColumn = new TableColumn<>("User type");
+	        
+	        userIDColumn.setCellValueFactory(new PropertyValueFactory<>("userID"));
+	        userNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+	        userSurnameColumn.setCellValueFactory(new PropertyValueFactory<>("surname"));
+	        userPersonCodeColumn.setCellValueFactory(new PropertyValueFactory<>("personCode"));
+	        userEmailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
+	        userUsernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
+	        userPasswordColumn.setCellValueFactory(new PropertyValueFactory<>("pasword"));
+	        userUserTypeColumn.setCellValueFactory(new PropertyValueFactory<>("userType"));
+	        
 	        
 	        Label measureLabelAdmin = new Label("Measurement:");
 	        grid2.add(measureLabelAdmin, 0, 2);
@@ -226,5 +322,19 @@ public class ClientApplication extends Application {
 	    // -------------------------------------------------------------------------------------
 	        primaryStage.setScene(loginScene);
 	        primaryStage.show();
+    }
+    
+    //funkcija, kas tiek klat clientlistener atbildei par login statusu
+    public static void setLoginStatus(String status) {
+    	loginStatus = status;
+    }
+    
+    //funkcija, kas lauj clientlisteneram tik klat client privatam objektam
+    public static void setLogInClient(appClient client) {
+    	logInClient = client;
+    }
+    
+    public static void setAddedUserStatus(String status) {
+    	addedUser = status;
     }
 }

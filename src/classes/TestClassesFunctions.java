@@ -20,7 +20,7 @@ public class TestClassesFunctions {
 		System.out.println("Uzvârds: "+person_default.getSurname());
 		System.out.println("Personas kods: "+person_default.getPersonCode());
 		System.out.println("");*/
-		Client client_default = new Client();
+		appClient client_default = new appClient();
 		System.out.println("ID: "+client_default.getID());
 		System.out.println("Vârds: "+client_default.getName());
 		System.out.println("Uzvârds: "+client_default.getSurname());

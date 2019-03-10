@@ -7,6 +7,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 
 import classes.UsersData;
+import classes.appClient;
 
 public class ClientServer {
 	public Client client;
@@ -20,7 +21,8 @@ public class ClientServer {
 		Kryo kryo = client.getKryo();
 		kryo.register(String.class);
 		kryo.register(UsersData.class);
-		kryo.register(ArrayList.class);
+		kryo.register(appClient.class);
+		kryo.register(classes.addClient.class);
 	}
 	
 	public void configureAndStartClient() throws IOException, InterruptedException {
@@ -30,6 +32,9 @@ public class ClientServer {
 		registerPackets();
 		client.start();
 		client.connect(5000, "127.0.0.1", 8001);
-		Thread.sleep(15000);
+	}
+	
+	public Client getClient() {
+		return client;
 	}
 }

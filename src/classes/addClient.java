@@ -1,34 +1,67 @@
 package classes;
 
-public class Person {
+public class addClient {
 	private static int ID;
-	private String Name;
-	private String Surname;
+	private String name;
+	private String surname;
 	private String personCode;
-	private String Email;
-
-	//Noklusçtais kontruktors ar noklusçtâm vçrtîbâm
-	public Person() {
-		String symbol = "-";
-		setName(symbol);
-		setSurname(symbol);
-		setPersonCode(symbol);
-		setEmail(symbol);
-		Person.ID = 0;
+	private String email;
+	private String measurement;
+	private String username;
+	private String password;
+	private String userType;
+	
+	//Noklusçtais konstruktors ar noklusçtâm vçrtîbâm
+	public addClient() {
+		
 	}
 	
-	//Konstruktors ar vçrtîbâm un funkcijam
-	public Person(String name, String surname, String person_Code) {
-		setName(name);
-		setSurname(surname);
+	public addClient(String Name, String Surname, String person_Code, String Email, String Username, String Password, String UserType) {
+		setID(ID++);
+		setName(Name);
+		setSurname(Surname);
 		setPersonCode(person_Code);
-		ID++;
+		setEmail(Email);
+		setUsername(Username);
+		setPassword(Password);
+		setUserType(UserType);
 	}
 
-	//Funkcija, kas iegûst vârdu
-	public String getName() {
-		return Name;
+	public static void setID(int iD) {
+		ID = iD;
 	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
+	}
+	
+	//Funkcija, kas iegûst paroli
+	public String getPassword() {
+		return password;
+	}
+	
+	// == Pabeigt ==
+	//Funkcija, kas ievieto vçrtîbu ar pârbaudçm
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	
+	//Funkcija, kas iegûst vârdu
+		public String getName() {
+			return name;
+		}
 
 	//Funkcija, kas ievieto vârdu ar pârbaudçm
 	public void setName(String name) {
@@ -38,14 +71,14 @@ public class Person {
 				temp += name.charAt(i);
 			}
 		}
-		this.Name = temp;
+		this.name = temp;
 	}
-	
+		
 	//Funkcija, kas iegûst uzvârdu
 	public String getSurname() {
-		return Surname;
+		return surname;
 	}
-	
+		
 	//Funkcija, kas ievieto uzvârdu ar pârbaudçm
 	public void setSurname(String surname) {
 		String temp = "";
@@ -54,7 +87,7 @@ public class Person {
 				temp += surname.charAt(i);
 			}
 		}
-		this.Surname = temp;
+		this.surname = temp;
 	}
 
 	//Funkcija, kas iegûst personas kodu
@@ -86,16 +119,16 @@ public class Person {
 			return 0;
 		}
 	}
-	
+		
 	// == Pabeigt ==
 	//Funkcija, kas iegûst epastu
 	public String getEmail() {
-		return Email;
+		return email;
 	}
-	
+		
 	// == Pabeigt ==
 	//Funkcija, kas ievieto epastu
 	public void setEmail(String email) {
-		Email = email;
+		this.email = email;
 	}
 }

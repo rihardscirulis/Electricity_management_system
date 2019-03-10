@@ -4,6 +4,10 @@ public class UsersData {
 	private String username;
 	private String password;
 	
+	public UsersData() {
+		
+	}
+	
 	public UsersData(String username, String password) {
 		this.username = username;
 		this.password = password;
@@ -24,4 +28,6 @@ public class UsersData {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+	
+	
 }
