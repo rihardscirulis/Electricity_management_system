@@ -263,9 +263,7 @@ public class ClientApplication extends Application {
 	        
 	        Button checkUser = new Button("Check Users");
 	        grid2.add(checkUser, 1, 1);
-	        checkUser.setOnAction(event -> {
-	        	primaryStage.setScene(checkUserScene);
-	        });
+	       
 	        Text checkUserText = new Text("Check users");
 	        checkUserText.setFont(Font.font("Times New Roman", FontWeight.NORMAL, 20));
 	        grid5.add(checkUserText, 0, 0, 3, 1);
@@ -289,6 +287,11 @@ public class ClientApplication extends Application {
 	        userPasswordColumn.setCellValueFactory(new PropertyValueFactory<>("pasword"));
 	        userUserTypeColumn.setCellValueFactory(new PropertyValueFactory<>("userType"));
 	        
+	        allUsersInTable.getColumns().addAll(userIDColumn, userNameColumn, userSurnameColumn, userPersonCodeColumn, userEmailColumn, userUsernameColumn, userPasswordColumn, userUserTypeColumn);
+	        
+	        checkUser.setOnAction(event -> {
+	        	primaryStage.setScene(checkUserScene);
+	        });
 	        
 	        Label measureLabelAdmin = new Label("Measurement:");
 	        grid2.add(measureLabelAdmin, 0, 2);
