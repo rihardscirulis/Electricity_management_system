@@ -1,7 +1,7 @@
 package classes;
 
 public class appClient {
-	private static int ID;
+	private int ID;
 	private String name;
 	private String surname;
 	private String personCode;
@@ -28,7 +28,7 @@ public class appClient {
 		setUserType(UserType);
 	}
 
-	public static void setID(int iD) {
+	public void setID(int iD) {
 		ID = iD;
 	}
 

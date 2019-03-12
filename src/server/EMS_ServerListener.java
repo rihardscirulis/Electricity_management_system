@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
+import classes.Measurement;
 import classes.UsersData;
 import classes.addClient;
 import classes.appClient;
@@ -32,10 +33,6 @@ public class EMS_ServerListener extends Listener {
 	
 	@Override
 	public void received(Connection connect, Object object) {
-		/*if(object instanceof String) {
-			String receivedFromClient = String() object;
-			System.out.println("Message from client: "+receivedFromClient);
-		}*/
 		if(object instanceof UsersData) {
 			System.out.println("Server received user object about check login data: ");
 			UsersData receivedFromClient_1 = (UsersData) object;
@@ -88,6 +85,42 @@ public class EMS_ServerListener extends Listener {
 			}
 			catch(SQLException e) {
 				e.printStackTrace();
+			}
+		}
+		if(object instanceof Measurement) {
+			System.out.println("Server received users measurement to add database: ");
+			Measurement receivedFromClient = (Measurement) object;
+			int userID = receivedFromClient.getID();
+			String addNewMeasurement = receivedFromClient.getMeasurement();
+			UserDatabase db = new UserDatabase();
+			try {
+				db.createConnection();
+				db.insertNewMeasurement(userID, addNewMeasurement);
+				ArrayList<Measurement> allMeasurementsList = db.getAllMeasurementForLoggedUser(userID);
+				System.out.println("Server received user requirement of user list: "+allMeasurementsList.size());
+				db.endConnection();
+				connect.sendTCP(allMeasurementsList);
+			}
+			catch(ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+			catch(SQLException e) {
+				e.printStackTrace();
+			}
+			
+		}
+		if(object instanceof String) {
+			if(object.equals("Send me user list")) {
+				UserDatabase db = new UserDatabase();
+				try {
+					db.createConnection();
+					ArrayList<addClient> allUsersList = db.getAllUsersFromDB();
+					System.out.println("Server received user requirement of user list: "+allUsersList.size());
+					db.endConnection();
+					connect.sendTCP(allUsersList);
+				} catch (ClassNotFoundException | SQLException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}

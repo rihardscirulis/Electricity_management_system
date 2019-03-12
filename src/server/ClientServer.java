@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 
+import classes.Measurement;
 import classes.UsersData;
+import classes.addClient;
 import classes.appClient;
 
 public class ClientServer {
@@ -22,7 +24,9 @@ public class ClientServer {
 		kryo.register(String.class);
 		kryo.register(UsersData.class);
 		kryo.register(appClient.class);
-		kryo.register(classes.addClient.class);
+		kryo.register(addClient.class);
+		kryo.register(ArrayList.class);
+		kryo.register(Measurement.class);
 	}
 	
 	public void configureAndStartClient() throws IOException, InterruptedException {

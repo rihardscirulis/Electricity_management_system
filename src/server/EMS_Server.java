@@ -4,6 +4,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Server;
 
 import classes.appClient;
+import classes.Measurement;
 import classes.UsersData;
 import classes.addClient;
 
@@ -38,6 +39,8 @@ public class EMS_Server {
 		kryo.register(UsersData.class);
 		kryo.register(appClient.class);
 		kryo.register(addClient.class);
+		kryo.register(ArrayList.class);
+		kryo.register(Measurement.class);
 	}
 	
 	/*public static void main(String[] args) throws IOException {

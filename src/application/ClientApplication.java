@@ -1,6 +1,8 @@
 package application;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -14,6 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -26,12 +29,14 @@ import server.EMS_Server;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Server;
 
 import classes.appClient;
+import classes.Measurement;
 import classes.UsersData;
 import classes.addClient;
 import database.UserDatabase;
@@ -42,15 +47,18 @@ public class ClientApplication extends Application {
 	private static String loginStatus = ""; //mainigais kas sanem no servera listener atbildi 
 	private static appClient logInClient;
 	private static String addedUser = "";
+	private static ArrayList<addClient> allUsersInListFromServer = new ArrayList<>();
+	private static ArrayList<Measurement> allUserMeasurementListFromServer = new ArrayList<>();
 	
 	Scene loginScene;
 	Scene adminScene;
 	Scene clientScene;
 	Scene addUserScene;
 	Scene checkUserScene;
+	Scene showMeasurementHistory;
 	
 	public static void main(String[] args) {
-        launch(args);
+		launch(args);
     }
 	
     @Override
@@ -86,12 +94,13 @@ public class ClientApplication extends Application {
         grid4.setVgap(10);
         grid4.setPadding(new Insets(25, 25, 25, 25));
         
-        GridPane grid5 = new GridPane();
-        Scene checkUserScene = new Scene(grid5, 470, 400);
-        grid5.setAlignment(Pos.CENTER);
-        grid5.setHgap(10);
-        grid5.setVgap(10);
-        grid5.setPadding(new Insets(25, 25, 25, 25));
+        VBox layoutForDisplayAllUsers = new VBox(10);
+        Scene checkUserScene = new Scene(layoutForDisplayAllUsers, 700, 400);
+        layoutForDisplayAllUsers.setPadding(new Insets(25, 25, 25, 25));
+        
+        VBox layoutForDisplayHistoryMeasurement = new VBox(10);
+        Scene showMeasurementHistory = new Scene(layoutForDisplayHistoryMeasurement, 400, 400);
+        layoutForDisplayHistoryMeasurement.setPadding(new Insets(25, 25, 25, 25));
         
         // ---<< Pierakstîðanâs logs >>---
         Scene loginScene = new Scene(grid, 450, 275);
@@ -264,11 +273,12 @@ public class ClientApplication extends Application {
 	        Button checkUser = new Button("Check Users");
 	        grid2.add(checkUser, 1, 1);
 	       
+	     // ---<< Administratora lietotaju pârbaudes logs >>---
 	        Text checkUserText = new Text("Check users");
 	        checkUserText.setFont(Font.font("Times New Roman", FontWeight.NORMAL, 20));
-	        grid5.add(checkUserText, 0, 0, 3, 1);
 	        
-	        TableView<appClient> allUsersInTable = new TableView<>();
+	        TableView<addClient> allUsersInTable = new TableView<>();
+	        
 	        TableColumn<addClient, Integer> userIDColumn = new TableColumn<>("User ID");
 	        TableColumn<addClient, String> userNameColumn = new TableColumn<>("Name");
 	        TableColumn<addClient, String> userSurnameColumn = new TableColumn<>("Surname");
@@ -288,10 +298,28 @@ public class ClientApplication extends Application {
 	        userUserTypeColumn.setCellValueFactory(new PropertyValueFactory<>("userType"));
 	        
 	        allUsersInTable.getColumns().addAll(userIDColumn, userNameColumn, userSurnameColumn, userPersonCodeColumn, userEmailColumn, userUsernameColumn, userPasswordColumn, userUserTypeColumn);
+	        Button backPreviousScene_1 = new Button("Back");
+	        backPreviousScene_1.setOnAction(event -> {
+	        	primaryStage.setScene(adminScene);
+	        });
+	        layoutForDisplayAllUsers.getChildren().addAll(checkUserText, allUsersInTable, backPreviousScene_1);
 	        
 	        checkUser.setOnAction(event -> {
+	        	String needAllUsers = "Send me user list";
+	        	clientserver.getClient().sendTCP(needAllUsers);
+	            while(allUsersInListFromServer.size()==0) {
+	                try {
+	                    Thread.sleep(1);
+	                }
+	                catch (InterruptedException e) {
+	                    e.printStackTrace();
+	                }
+	            }
+	            final ObservableList<addClient> observableUserList = FXCollections.observableArrayList(allUsersInListFromServer);
+	            allUsersInTable.setItems(observableUserList);
 	        	primaryStage.setScene(checkUserScene);
 	        });
+	     // -------------------------------------------------------------------------------------
 	        
 	        Label measureLabelAdmin = new Label("Measurement:");
 	        grid2.add(measureLabelAdmin, 0, 2);
@@ -299,11 +327,36 @@ public class ClientApplication extends Application {
 	        TextField measurementAdmin = new TextField();
 	        grid2.add(measurementAdmin, 0, 3); 
 	        
+	        TableView<Measurement> allMeasurementTableForUser = new TableView<>();
+	        
+	        TableColumn<Measurement, Integer> measurementUserIDColumn = new TableColumn<>("User ID");
+	        TableColumn<Measurement, Date> measurementDateColumn = new TableColumn<>("Date");
+	        TableColumn<Measurement, String> measurementColumn = new TableColumn<>("Measurement");
+	        
+	        measurementUserIDColumn.setCellValueFactory(new PropertyValueFactory<>("userID"));
+	        measurementDateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
+	        measurementColumn.setCellValueFactory(new PropertyValueFactory<>("measurement"));
+	        
+	        allMeasurementTableForUser.getColumns().addAll(measurementUserIDColumn, measurementDateColumn, measurementColumn);
+	        layoutForDisplayHistoryMeasurement.getChildren().addAll(allMeasurementTableForUser);
 	        Button acceptMeasureAdmin = new Button("Accept");
 	        grid2.add(acceptMeasureAdmin, 0, 4);
-	        
-	        Button getDocumentAdmin = new Button("Get Document");
-	        grid2.add(getDocumentAdmin, 1, 4);
+	        acceptMeasureAdmin.setOnAction(event -> {
+	        	String number = measurementAdmin.getText();
+	        	Measurement measurementNumber = new Measurement(logInClient.getID(), number);
+	        	clientserver.getClient().sendTCP(measurementNumber);
+	        	while(allUserMeasurementListFromServer.size()==0) {
+	        		try {
+	        			Thread.sleep(1);
+		            }
+		            catch (InterruptedException e) {
+		            	e.printStackTrace();
+		            }
+		        }
+	        	final ObservableList<Measurement> observableMeasurementList = FXCollections.observableArrayList(allUserMeasurementListFromServer);
+	        	allMeasurementTableForUser.setItems(observableMeasurementList);
+	        	primaryStage.setScene(showMeasurementHistory);
+	        });
 	    // -------------------------------------------------------------------------------------
 	        
 	    // ---<< Klienta scenas logs >>---
@@ -319,6 +372,22 @@ public class ClientApplication extends Application {
 	        
 	        Button acceptMeasureClient = new Button("Accept");
 	        grid3.add(acceptMeasureClient, 0, 3);
+	        acceptMeasureClient.setOnAction(event -> {
+	        	String number = measurementClient.getText();
+	        	Measurement measurementNumber = new Measurement(logInClient.getID(), number);
+	        	clientserver.getClient().sendTCP(measurementNumber);
+	        	while(allUserMeasurementListFromServer.size()==0) {
+	        		try {
+	        			Thread.sleep(1);
+		            }
+		            catch (InterruptedException e) {
+		            	e.printStackTrace();
+		            }
+		        }
+	        	final ObservableList<Measurement> observableMeasurementList = FXCollections.observableArrayList(allUserMeasurementListFromServer);
+		        allMeasurementTableForUser.setItems(observableMeasurementList);
+		        primaryStage.setScene(showMeasurementHistory);
+	        });
 	        
 	        Button getDocumentClient = new Button("Get Document");
 	        grid3.add(getDocumentClient, 1, 3);
@@ -339,5 +408,13 @@ public class ClientApplication extends Application {
     
     public static void setAddedUserStatus(String status) {
     	addedUser = status;
+    }
+    
+    public static void setUsersListFromServer(ArrayList<addClient> list) {
+    	allUsersInListFromServer = list;
+    }
+    
+    public static void setAllUserMeasurementListFromServer(ArrayList<Measurement> list) {
+    	allUserMeasurementListFromServer = list;
     }
 }

@@ -1,7 +1,7 @@
 package classes;
 
 public class addClient {
-	private static int ID;
+	private int ID;
 	private String name;
 	private String surname;
 	private String personCode;
@@ -16,6 +16,17 @@ public class addClient {
 		
 	}
 	
+	public addClient(int id, String Name, String Surname, String person_Code, String Email, String Username, String Password, String UserType) {
+		setID(id);
+		setName(Name);
+		setSurname(Surname);
+		setPersonCode(person_Code);
+		setEmail(Email);
+		setUsername(Username);
+		setPassword(Password);
+		setUserType(UserType);
+	}
+	
 	public addClient(String Name, String Surname, String person_Code, String Email, String Username, String Password, String UserType) {
 		setID(ID++);
 		setName(Name);
@@ -27,7 +38,7 @@ public class addClient {
 		setUserType(UserType);
 	}
 
-	public static void setID(int iD) {
+	public void setID(int iD) {
 		ID = iD;
 	}
 
