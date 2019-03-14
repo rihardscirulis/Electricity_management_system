@@ -49,6 +49,10 @@ public class ClientApplication extends Application {
 	private static String addedUser = "";
 	private static ArrayList<addClient> allUsersInListFromServer = new ArrayList<>();
 	private static ArrayList<Measurement> allUserMeasurementListFromServer = new ArrayList<>();
+	private static double fee;
+	private static int electricityResultCalculated;
+	private static String lastMeasurement = "";
+	private static String previousMeasurement = "";
 	
 	Scene loginScene;
 	Scene adminScene;
@@ -288,7 +292,7 @@ public class ClientApplication extends Application {
 	        TableColumn<addClient, String> userPasswordColumn = new TableColumn<>("Password");
 	        TableColumn<addClient, String> userUserTypeColumn = new TableColumn<>("User type");
 	        
-	        userIDColumn.setCellValueFactory(new PropertyValueFactory<>("userID"));
+	        userIDColumn.setCellValueFactory(new PropertyValueFactory<>("ID"));
 	        userNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 	        userSurnameColumn.setCellValueFactory(new PropertyValueFactory<>("surname"));
 	        userPersonCodeColumn.setCellValueFactory(new PropertyValueFactory<>("personCode"));
@@ -326,19 +330,38 @@ public class ClientApplication extends Application {
 	
 	        TextField measurementAdmin = new TextField();
 	        grid2.add(measurementAdmin, 0, 3); 
-	        
+
 	        TableView<Measurement> allMeasurementTableForUser = new TableView<>();
 	        
 	        TableColumn<Measurement, Integer> measurementUserIDColumn = new TableColumn<>("User ID");
 	        TableColumn<Measurement, Date> measurementDateColumn = new TableColumn<>("Date");
 	        TableColumn<Measurement, String> measurementColumn = new TableColumn<>("Measurement");
 	        
-	        measurementUserIDColumn.setCellValueFactory(new PropertyValueFactory<>("userID"));
+	        measurementUserIDColumn.setCellValueFactory(new PropertyValueFactory<>("ID"));
 	        measurementDateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
 	        measurementColumn.setCellValueFactory(new PropertyValueFactory<>("measurement"));
 	        
 	        allMeasurementTableForUser.getColumns().addAll(measurementUserIDColumn, measurementDateColumn, measurementColumn);
-	        layoutForDisplayHistoryMeasurement.getChildren().addAll(allMeasurementTableForUser);
+	        Button backToPreviousScene = new Button("Back");
+	        backToPreviousScene.setOnAction(event -> {
+	        	if(logInClient.getUserType().equals("admin")) {
+	        		usernameTextField.clear();
+	        		passwordTextField.clear();
+	        		primaryStage.setScene(adminScene);
+	        	}
+	        	if(logInClient.getUserType().equals("client")) {
+	        		usernameTextField.clear();
+	        		passwordTextField.clear();
+	        		primaryStage.setScene(clientScene);
+	        	}
+	        });
+	        
+	        Label latestMeasurementLabel = new Label("");
+	        Label previousMeasurementLabel = new Label("");
+	        Label feeMeasurementLabel = new Label("");
+	        Label resultMeasurementLabel = new Label("");
+	        
+	        layoutForDisplayHistoryMeasurement.getChildren().addAll(allMeasurementTableForUser, latestMeasurementLabel, previousMeasurementLabel, feeMeasurementLabel, resultMeasurementLabel, backToPreviousScene);
 	        Button acceptMeasureAdmin = new Button("Accept");
 	        grid2.add(acceptMeasureAdmin, 0, 4);
 	        acceptMeasureAdmin.setOnAction(event -> {
@@ -355,7 +378,18 @@ public class ClientApplication extends Application {
 		        }
 	        	final ObservableList<Measurement> observableMeasurementList = FXCollections.observableArrayList(allUserMeasurementListFromServer);
 	        	allMeasurementTableForUser.setItems(observableMeasurementList);
+	        	latestMeasurementLabel.setText("Your last measurement: "+lastMeasurement+" Kw/h");
+	        	previousMeasurementLabel.setText("Your previous measurement: "+previousMeasurement+" Kw/h");
+	        	feeMeasurementLabel.setText("Your measurement result: "+Integer.toString(electricityResultCalculated)+" Kw/h");
+	        	resultMeasurementLabel.setText("It's only: "+Double.toString(fee)+" EUR");
 	        	primaryStage.setScene(showMeasurementHistory);
+	        });
+	        
+	        Button logOutAdmin = new Button("Log out");
+	        grid2.add(logOutAdmin, 0, 5);
+	        
+	        logOutAdmin.setOnAction(event -> {
+	        	primaryStage.setScene(loginScene);
 	        });
 	    // -------------------------------------------------------------------------------------
 	        
@@ -386,11 +420,19 @@ public class ClientApplication extends Application {
 		        }
 	        	final ObservableList<Measurement> observableMeasurementList = FXCollections.observableArrayList(allUserMeasurementListFromServer);
 		        allMeasurementTableForUser.setItems(observableMeasurementList);
+		        latestMeasurementLabel.setText("Your last measurement: "+lastMeasurement+" Kw/h");
+	        	previousMeasurementLabel.setText("Your previous measurement: "+previousMeasurement+" Kw/h");
+	        	feeMeasurementLabel.setText("Your measurement result: "+Integer.toString(electricityResultCalculated)+" Kw/h");
+	        	resultMeasurementLabel.setText("It's only: "+Double.toString(fee)+" EUR");
 		        primaryStage.setScene(showMeasurementHistory);
 	        });
 	        
-	        Button getDocumentClient = new Button("Get Document");
-	        grid3.add(getDocumentClient, 1, 3);
+	        Button logOutClient = new Button("Log out");
+	        grid3.add(logOutClient, 0, 4);
+	        
+	        logOutClient.setOnAction(event -> {
+	        	primaryStage.setScene(loginScene);
+	        });
 	    // -------------------------------------------------------------------------------------
 	        primaryStage.setScene(loginScene);
 	        primaryStage.show();
@@ -416,5 +458,29 @@ public class ClientApplication extends Application {
     
     public static void setAllUserMeasurementListFromServer(ArrayList<Measurement> list) {
     	allUserMeasurementListFromServer = list;
+    }
+    
+    public static void setUsersElectricityFee(double electricityFee) {
+    	fee = electricityFee;
+    }
+    
+    public static void setUsersElectricityResult(int electricityResult) {
+    	electricityResultCalculated = electricityResult;
+    }
+    
+    public static void setUsersElectricityLastMeasurement(String last) {
+    	lastMeasurement = last;
+    }
+    
+    public static void setUsersElectricityPreviousMeasurement(String previous) {
+    	previousMeasurement = previous;
+    }
+    
+    public static String getUsersElectricityLastMeasurement() {
+    	return lastMeasurement;
+    }
+    
+    public static String getUsersElectricityPreviousMeasurement() {
+    	return previousMeasurement;
     }
 }

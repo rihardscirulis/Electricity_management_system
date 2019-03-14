@@ -53,6 +53,18 @@ public class ClientListener extends Listener{
 				ArrayList<Measurement> listOfAllMeasurements = (ArrayList<Measurement>) object;
 				ClientApplication.setAllUserMeasurementListFromServer(listOfAllMeasurements);
 				System.out.println("CLIENT >> Received all users list with size: " +listOfAllMeasurements.size());
+				String lastMeasurement = listOfAllMeasurements.get(listOfAllMeasurements.size()-1).getMeasurement();
+				String previousMeasurement = listOfAllMeasurements.get(listOfAllMeasurements.size()-2).getMeasurement();
+				int previousNumber = Integer.parseInt(previousMeasurement);
+				int lastNumber = Integer.parseInt(lastMeasurement);
+				int result = lastNumber - previousNumber;
+				double electricityFeePerKwH = 0.319; 
+				double payFee = result * electricityFeePerKwH;
+				ClientApplication.setUsersElectricityLastMeasurement(lastMeasurement);
+				ClientApplication.setUsersElectricityPreviousMeasurement(previousMeasurement);
+				ClientApplication.setUsersElectricityFee(payFee);
+				ClientApplication.setUsersElectricityResult(result);
+				System.out.println("CLIENT >> Sended a fee of electricity and result");
 			}
 		}
 	}
